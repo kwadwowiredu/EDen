@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
         top: width * 0.028,
         color: '#fff',
         textAlign: 'center',
-        paddingVertical: height * 0.01, // 1.5% of screen height
+        paddingVertical: height * 0.01,
         borderRadius: 10,
         fontSize: width * 0.07, // 4% of screen width
         marginHorizontal: width * 0.04, // 4% of screen width
