@@ -1,19 +1,13 @@
-import { Stack } from 'expo-router';
+// app/_layout.tsx
+import { Slot } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-
+import { NotificationProvider } from './NotificationContext';
 
 export default function RootLayout() {
-  
-
   return (
-    <>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="splash" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="+not-found" />
-      </Stack>
+    <NotificationProvider>
+      <Slot /> 
       <StatusBar style="auto" />
-    </>
+    </NotificationProvider>
   );
 }
