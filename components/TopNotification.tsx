@@ -96,7 +96,7 @@ export default function TopNotification({
         }}
         style={styles.content}
       >
-        <Feather name="alert-circle" size={20} color="#fff" style={{ marginRight: 10, left: width * 0.13, }} />
+        <Feather name="alert-circle" size={20} color="#fff" style={{ marginLeft: 10, alignSelf: 'flex-start' }} />
         <Text numberOfLines={2} style={[styles.message, textStyle]}>
           {message}
         </Text>

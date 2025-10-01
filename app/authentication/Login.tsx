@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     },
 
     checkboxchecked:{
-        backgroundColor: '#1C9174',
+        backgroundColor: Colors.light.lightGreen,
     },
 
     toggleText:{
@@ -249,7 +249,7 @@ const LoginScreen: FC = () => {
     setNotifMessage(msg);
     setNotifVisible(true);
     if (!autoHide) {
-      // keep visible until user taps (component hides on tap)
+
     }
   };
 
@@ -332,6 +332,7 @@ const LoginScreen: FC = () => {
                     onChangeText={setEmail}
                     placeholder="Email"
                     placeholderTextColor='#595C5E'
+                    keyboardType='email-address'
                     style={styles.input}
                 />
                 </View>

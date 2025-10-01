@@ -1,8 +1,9 @@
+import { Feather } from '@expo/vector-icons';
 import { Link, router } from 'expo-router';
-import React, { FC, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import {
-    Alert,
     Dimensions,
+    Image,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -13,30 +14,44 @@ import {
     View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import TopNotification from '../../components/TopNotification';
+import { Colors } from "../../constants/Colors";
+
 
 const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
+    backgroundContainer: {
+        backgroundColor: Colors.light.background,
+        flex: 1,
+    },
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        justifyContent: 'center',
+        padding: 16,
+        width: '100%',
+        alignSelf: 'center',
+    },
+    container2: {
+        flex: 1,
+        justifyContent: 'center',
+        padding: 16,
+        width: '100%',
+        alignSelf: 'center',
+        top: width * -0.13,
+    },
+    logoContainer: {
+        alignItems: 'center',
+        right: width * 0.4,
+        marginBottom: height * 0.04, // 4% spacing after logo
+        paddingTop: height * 0.02,
+        top: width * 0.1,
     },
 
     scrollContainer: {
         flexGrow: 1,
         paddingHorizontal: width * 0.05, // 5% of screen width
         paddingTop: height * 0.05, // 5% from top for safe area
-    },
-
-    logoContainer: {
-        alignItems: 'center',
-        marginBottom: height * 0.04, // 4% spacing after logo
-        paddingTop: height * 0.02, // 2% padding from top
-    },
-
-    logo: {
-        width: width * 0.25, // 25% of screen width
-        height: width * 0.25, // Keep it square
     },
 
     contentContainer: {
@@ -46,14 +61,17 @@ const styles = StyleSheet.create({
 
     input: {
         borderWidth: 1,
-        borderColor: '#ccc',
-        padding: width * 0.03, // 3% of screen width
-        borderRadius: 6,
-        fontSize: width * 0.04, // 4% of screen width
-        marginBottom: height * 0.01, // 1% of screen height
+        borderColor: Colors.light.primary,
+        padding: width * 0.03,
+        borderRadius: 8,
+        fontSize: width * 0.045, 
+        marginBottom: height * 0.01, 
         justifyContent: 'center',
-        paddingHorizontal: width * 0.05, // 5% of screen width
-        marginHorizontal: width * 0.04, // 4% of screen width
+        paddingHorizontal: width * 0.1, 
+        marginHorizontal: width * -0.04, 
+        marginVertical: height * 0.005, 
+        fontFamily: 'Montserrat-Regular',
+        paddingLeft: width * 0.1,
     },
 
     inputError: {
@@ -81,28 +99,6 @@ const styles = StyleSheet.create({
         color: '#333',
     },
 
-    name:{
-        borderWidth: 1,
-        borderColor: '#ccc',
-        padding: width * 0.03, // 3% of screen width
-        borderRadius: 6,
-        fontSize: width * 0.035, // 3.5% of screen width
-        marginBottom: height * 0.01, // 1% of screen height
-        justifyContent: 'center',
-    },
-
-    button:{
-        backgroundColor: '#1C9174',
-        color: '#fff',
-        textAlign: 'center',
-        paddingVertical: height * 0.015, // 1.5% of screen height
-        borderRadius: 6,
-        fontWeight: 'bold',
-        fontSize: width * 0.04, // 4% of screen width
-        marginHorizontal: width * 0.04, // 4% of screen width
-        marginVertical: height * 0.02, // 2% of screen height
-    },
-
     buttonDisabled: {
         backgroundColor: '#cccccc',
         color: '#666666',
@@ -121,7 +117,9 @@ const styles = StyleSheet.create({
         fontSize: width * 0.03, // 3% of screen width
         marginLeft: width * 0.06, // 6% of screen width
         marginTop: height * 0.005, // 0.5% of screen height
-        marginBottom: height * 0.01, // 1% of screen height
+        fontFamily: 'Montserrat-Regular',
+        left: width * 0.27,
+        bottom: width *0.052,
     },
 
     passwordContainer: {
@@ -205,24 +203,12 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginTop: height * 0.02, // 2% of screen height
         marginBottom: height * 0.03, // 3% bottom margin for safe area
+        bottom: width * 0.1,
     },
 
     checkboxRow:{
         flexDirection: 'row',
         alignItems: 'center',
-    },
-
-    checkBox:{
-        width: width * 0.05, // 5% of screen width
-        height: width * 0.05, // Keep it square
-        borderColor: '#ccc',
-        borderWidth: 2,
-        borderRadius: 4,
-        marginRight: width * 0.02, // 2% of screen width
-    },
-
-    checkboxchecked:{
-        backgroundColor: '#1C9174',
     },
 
     passwordWrapper:{
@@ -252,70 +238,167 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginLeft: width * 0.02, // 2% of screen width
         fontSize: width * 0.035, // 3.5% of screen width
+        fontFamily: 'Montserrat-Regular',
+        
+    },
+    inputContainer: {
+        width: '100%',
+        bottom: width * 0.13,
+    },
+    resetbutton: {
+        color: "#fff",
+        fontFamily: 'Montserrat-SemiBold',
+        fontSize: 26,
+        paddingVertical: width * 0.016,
+
+    },
+    forgettext:{
+        fontSize: 30,
+        fontFamily: 'Montserrat-SemiBold',
+        bottom: width * 0.065,
+        left: width * 0.16,
+        marginBottom: 0,
+    },
+    icon: {
+        top: width * 0.043,
+        right: width * 0.01,
+        marginBottom: width * -0.06,
+    },
+    icon2: {
+        top: width * -0.09,
+        right: width * 0.01,
+        marginBottom: width * -0.06,
+    },
+    FooterText: {
+        position: 'absolute',
+        width: '100%',
+        alignItems: 'center',
+        alignSelf: 'center',
+        bottom: width * 0.18,
+    },
+    FooterTextContent: {
+        color: Colors.light.lightGreen,
+        fontSize: width * 0.04,
+        fontFamily: 'Montserrat-Italic',
     },
 })
 
 const SignupScreen: FC = () => {
-    const [studentID,setstudentID] = useState('');
+    const [phonennumber, setphonennumber] = useState('');
+    const [signup, setSignup] = useState(false);
     const [firstname, setfirstname] = useState('');
-    const [lastname, setlastname] = useState('');
-    const [studentemail, setstudentemail] = useState('');
+    const [email, setEmail] = useState('');
     const [password,setpassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [ErrorMessage, setErrorMessage] = useState('');
-    const [rememberMe, setrememberMe] = useState(false);
     const [showPassword, setshowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [notifVisible, setNotifVisible] = useState(false);
+    const [notifMessage, setNotifMessage] = useState('');
+    const [notifColor, setNotifColor] = useState<string | undefined>();
 
+    useEffect(() => {
+    if (ErrorMessage && ErrorMessage.length > 0) {
+        setNotifMessage(ErrorMessage);
+        setNotifColor('#e53935'); // red for errors
+        setNotifVisible(true);
+    }
+    }, [ErrorMessage]);
+
+
+    const isValidEmail = (email: string) => {
+        const regex = /^\S+@\S+\.\S+$/;
+        return regex.test(email);
+    };
+
+    const showNotification = (msg: string, duration = 3000) => {
+        setNotifMessage(msg);
+        setNotifVisible(true);
+
+    };
     // Password validation logic
     const passwordsMatch = password === confirmPassword;
     const showPasswordError = password.length > 0 && confirmPassword.length > 0 && !passwordsMatch;
-    const isFormValid = studentID && firstname && lastname && studentemail && password && confirmPassword && passwordsMatch;
+    const isFormValid = phonennumber && firstname && email && password && confirmPassword && passwordsMatch;
 
-    const handleSignup = async () => {
-        if (!isFormValid) {
-            if (!passwordsMatch) {
-                Alert.alert('Password Error', 'Passwords do not match. Please ensure both password fields are identical.');
-                return;
-            }
-            Alert.alert('Form Error', 'Please fill in all required fields.');
-            return;
-        }
-        
-        // If all validations pass, proceed with signup
-        else{
-            try{
-                const response = await fetch('###', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify([studentID, firstname, 
-                        lastname, studentemail,password,])
-                })
-                const data = await response.json();
+  const handleSignup = async () => {
+  // Validation
+  if (!isFormValid) {
+    if (!passwordsMatch) {
+      showNotification(
+        'Passwords do not match.'
+      );
+      return;
+    }
+    showNotification('Fill all fields correctly');
+    return;
+  }
 
-                if (!data.success){
-                    setErrorMessage('Incorrect Student ID or Email');
-                    return
-                }
+  setSignup(true);
+  setErrorMessage('');
 
-                setErrorMessage('')
-                router.push('/(tabs)/explore')
-            }
-            catch(error){
-                console.error(error);
-                setErrorMessage('Something went wrong. Please try again later');
-            }
-        }
+  try {
+    const response = await fetch('###', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phoneNumber: phonennumber,
+        firstname,
+        email,
+        password,
+      }),
+    });
 
-        
+    // Try to parse JSON safely
+    let data: any = {};
+    try {
+      data = await response.json();
+    } catch {
+      // leave data as {}
     }
 
+    if (!response.ok || !data.success) {
+      setErrorMessage(data.message || 'Incorrect Phone Number or Email');
+      return;
+    }
+
+    setErrorMessage('');
+    router.push('/(tabs)/explore');
+  } catch (error) {
+    // console.error(error);
+    showNotification('Something went wrong. Please try again later');
+  } finally {
+    setSignup(false);
+  }
+};
+
     return(
+        <>
+      <TopNotification
+        message={notifMessage}
+        visible={notifVisible}
+        onHide={() => setNotifVisible(false)}
+        duration={3000}
+      />
+            <View style={styles.backgroundContainer}>
+                <View style={styles.container}>
+                <TouchableOpacity style={styles.logoContainer} 
+                    onPress={() => router.back()}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    accessibilityLabel="Go back"
+                    activeOpacity={0.7}>
+                        <Image source={require('../../assets/images/EDen/Arrow.png')}
+                            style={{ width: 22, height: 22,  left: width * 0.03,   }}
+                                    />
+                </TouchableOpacity> 
+                <Text style= {styles.forgettext}>
+                    Create an Account
+                </Text>
     <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style= {{flex: 1}}
     >
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container2}>
         <ScrollView 
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
@@ -326,144 +409,131 @@ const SignupScreen: FC = () => {
                 <Image source={require('../../../Tekmart-main/assets/tekmart_images/TekMart 2.png')} style={styles.logo}/>
             </View> */}
 
-            {/* Content Section */}
-            <View style={styles.contentContainer}>
-                {/* Name Container */}
-                <View style={styles.nameContainer}>
+            <View style={{ padding: 16, flex: 1, justifyContent: 'center', bottom: width * 0.1, }}>
                     {/* First Name */}
-                    <View style={styles.nameInputContainer}>
-                        <Text style={styles.nameLabel}>First Name</Text>
+                    <View style={styles.inputContainer}>
+                        <Feather name="user" size={20} color="#888" style={styles.icon} />
                         <TextInput 
                             value={firstname} 
                             onChangeText={setfirstname} 
-                            placeholder="Enter First Name"
+                            placeholder="Username"
                             placeholderTextColor='#999'
-                            style={styles.name}
+                            style={styles.input}
                         />
                     </View>
 
-                    {/* Last Name */}
-                    <View style={styles.nameInputContainer}>
-                        <Text style={styles.nameLabel}>Last Name</Text>
-                        <TextInput 
-                            value={lastname} 
-                            onChangeText={setlastname} 
-                            placeholder="Enter Last Name"
-                            placeholderTextColor='#999'
-                            style={styles.name}
-                        />
-                    </View>
+                {/* Email */}
+                <View style={styles.inputContainer}>
+                    <Feather name="mail" size={20} color="#888" style={styles.icon} />
+                <TextInput 
+                    value={email} 
+                    onChangeText={setEmail} 
+                    placeholder="Email"
+                    placeholderTextColor='#999'
+                    keyboardType='email-address'
+                    style={styles.input}
+                />
                 </View>
 
-                {/* Student ID */}
-                <Text style={styles.header}>Student ID</Text>
+                {/* Phone Number */}
+                <View style={styles.inputContainer}>
+                    <Feather name="phone" size={20} color="#888" style={styles.icon} />
                 <TextInput 
-                    value={studentID} 
-                    onChangeText={setstudentID} 
-                    placeholder="Enter your student reference number"
+                    value={phonennumber} 
+                    onChangeText={setphonennumber} 
+                    placeholder="Phone Number"
                     placeholderTextColor='#999'
                     style={styles.input}
-                />
-
-                {/* Student Email */}
-                <Text style={styles.header}>Student Email</Text>
-                <TextInput 
-                    value={studentemail} 
-                    onChangeText={setstudentemail} 
-                    placeholder="Enter your student email"
-                    placeholderTextColor='#999'
-                    style={styles.input}
-                    keyboardType="email-address"
+                    keyboardType="phone-pad"
                     autoCapitalize="none"
                 />
+                </View>
 
                 {/* Password */}
                 <View style={styles.passwordContainer}>
-                    <Text style={styles.header}>Password</Text>
-                    <View style={[styles.passwordWrapper, showPasswordError && styles.passwordWrapperError]}>
+                    <Feather name="lock" size={20} color="#888" style={styles.icon2} />
+                    <View style={styles.inputContainer}>
                         <TextInput 
                             value={password} 
                             onChangeText={setpassword} 
-                            placeholder="Enter your password"
+                            placeholder="Password"
                             placeholderTextColor='#999'
-                            style={styles.passwordInput}
+                            style={styles.input}
                             secureTextEntry={!showPassword}
                         />
-                        <TouchableOpacity onPress={() => setshowPassword(!showPassword)}>
+                        <TouchableOpacity onPress={() => setshowPassword(!showPassword)} style={{ bottom: width * 0.11, left: width * 0.55, }}>
                             <Text style={styles.toggleText}>
                                 {showPassword ? 'Hide' : 'Show'}
                             </Text>
                         </TouchableOpacity>
                     </View>
-                    {showPasswordError && (
-                        <Text style={styles.errorText}>Passwords do not match</Text>
-                    )}
                 </View>
 
                 {/* Confirm Password */}
-                <View style={styles.passwordContainer}>
-                    <Text style={styles.header}>Confirm Password</Text>
-                    <View style={[styles.passwordWrapper, showPasswordError && styles.passwordWrapperError]}>
+                <View style={styles.inputContainer}>
+                    <Feather name="lock" size={20} color="#888" style={styles.icon} />
                         <TextInput 
                             value={confirmPassword} 
                             onChangeText={setConfirmPassword} 
-                            placeholder="Confirm your password"
+                            placeholder="Confirm Password"
                             placeholderTextColor='#999'
-                            style={styles.passwordInput}
+                            style={styles.input}
                             secureTextEntry={!showConfirmPassword}
                         />
-                        <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                        <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={{ bottom: width * 0.11, left: width * 0.55, }}>
                             <Text style={styles.toggleText}>
                                 {showConfirmPassword ? 'Hide' : 'Show'}
                             </Text>
                         </TouchableOpacity>
-                    </View>
                     {showPasswordError && (
                         <Text style={styles.errorText}>Passwords do not match</Text>
                     )}
                 </View>
 
                 {/* Next Button */}
-                <TouchableOpacity 
-                    onPress={handleSignup}
-                    disabled={!isFormValid}
-                    style={[
-                        styles.button,
-                        { opacity: isFormValid ? 1 : 0.5 }
-                    ]}
-                >   
-                    <Text style={[!isFormValid && styles.buttonDisabled]}>Next</Text>
-                </TouchableOpacity>
+                        <TouchableOpacity
+                            style={{
+                                backgroundColor: !isValidEmail(email) || signup ? Colors.light.lightGreen : Colors.light.primary,
+                                padding: 12,
+                                borderRadius: 8,
+                                alignItems: 'center',
+                                paddingVertical: width * -0.02,
+                                marginHorizontal: width * -0.04,
+                                bottom: width * 0.08,
+                            }}
+                            onPress={handleSignup}
+                            disabled={!isValidEmail(email) || signup}
+                        >
+                            <Text style={styles.resetbutton}>
+                                {signup ? 'Loading...' : 'Sign Up'}
+                            </Text>
+                        </TouchableOpacity>
 
 
                 {ErrorMessage !== '' && (
                     <Text style={{color: 'red', marginTop: 8}}>{ErrorMessage}</Text>
                 )}
 
-                {/* Divider */}
-                {/* <View style={styles.dividerContainer}>
-                    <View style={styles.divider}/>
-                    <Text style={styles.dividerOR}>OR</Text>
-                    <View style={styles.divider}/>
-                </View> */}
-
-                {/* Sign up with Google */}
-                {/* <TouchableOpacity style={styles.googleContainer}>
-                    <Image source={require('../../assets/tekmart_images/googleimage.jpg')} style={styles.googlelogo}/>
-                    <Text style={styles.googleText}>Sign Up with Google</Text>
-                </TouchableOpacity> */}
-
+                
                 {/* Sign In Link */}
                 <TouchableOpacity style={styles.signupContainer}>
-                    <Text style={{marginRight: 5, fontSize: width * 0.035}}>Already have an account?</Text>
+                    <Text style={{marginRight: 5, fontSize: width * 0.04, fontFamily: 'Montserrat-Regular', }}>Already have an account?</Text>
                     <Link href="/authentication/Login">
-                        <Text style={{color: '#1C9174', fontSize: width * 0.035}}>Sign In</Text>
+                        <Text style={{color: Colors.light.lightGreen, fontSize: width * 0.04, textDecorationLine: 'underline', fontFamily: 'Montserrat-Regular',}}>Log In!</Text>
                     </Link>
                 </TouchableOpacity>
             </View>
+
         </ScrollView>
+        
     </SafeAreaView>
     </KeyboardAvoidingView>
+    </View>
+                <View style={styles.FooterText}>
+                                          <Text style={styles.FooterTextContent}>protecting your paradise...</Text>
+                                        </View>
+    </View>
+    </>
     );
 };
 
