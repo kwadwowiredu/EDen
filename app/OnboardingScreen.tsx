@@ -220,9 +220,9 @@ const OnboardingScreen: FC<OnboardingProps> = ({ navigation }) => {
           <TouchableOpacity onPress={goBack} style={styles.arrowButton}>
             <Image
               source={require('../assets/images/EDen/Arrow.png')}
-              style={{ width: 20, height: 20 }}
+              style={{ width: 20, height: 20, top: width * 0.005, right: width * 0.015, }}
             />
-            <Text style={{ color: Colors.light.primary, fontFamily: 'InterSemi-Bold', fontSize: width * 0.045, left: width * 0.02,}}>
+            <Text style={{ color: Colors.light.primary, fontFamily: 'Montserrat-Bold', fontSize: width * 0.045, left: width * 0.02,}}>
               Prev
             </Text>
           </TouchableOpacity>
@@ -244,7 +244,7 @@ const OnboardingScreen: FC<OnboardingProps> = ({ navigation }) => {
           </Text>
             <Image
               source={require('../assets/images/EDen/Arrow.png')}
-              style={{ width: 20, height: 20, transform: [{ rotate: '-180deg' }], right: width * 0.05,   }}
+              style={{ width: 20, height: 20, transform: [{ rotate: '-180deg' }], right: width * 0.02, top: width * 0.002,  }}
             />
         </TouchableOpacity>
         {/* Skip button for first slide */}
