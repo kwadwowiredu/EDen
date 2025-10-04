@@ -1,11 +1,14 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from 'expo-router';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import NotificationCard from '../../components/notificationCard';
-import { useNotifications } from '../NotificationContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 const { width, height } = Dimensions.get('window');
+
+
 
 type Notification = {
   id: number;
@@ -16,6 +19,17 @@ type Notification = {
 
 export default function Notifications() {
   const { notifications, markAllAsRead } = useNotifications();
+
+  useEffect(() => {
+  const setTestBuilding = async () => {
+    await AsyncStorage.setItem(
+      "currentBuilding",
+      JSON.stringify({ id: "buildingA", name: "Building A" })
+    );
+    console.log("✅ Test building set!");
+  };
+  setTestBuilding();
+}, []);
 
   // Run cleanup when screen is unfocused
   useFocusEffect(

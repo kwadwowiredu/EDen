@@ -286,7 +286,7 @@ const LoginScreen: FC = () => {
             }
         }
             */}
-        router.push('/(tabs)/explore')
+        router.push('/(tabs)')
         
     }
 

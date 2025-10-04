@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert,} from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { router } from "expo-router";
-import OTPTextInput from 'react-native-otp-textinput';
-import { Colors } from "../constants/Colors";
-import Modal from 'react-native-modal';
 import { useFonts } from 'expo-font';
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Modal from 'react-native-modal';
+import OTPTextInput from 'react-native-otp-textinput';
+import TopNotification from '../components/TopNotification';
+import { Colors } from "../constants/Colors";
 
 const { width, height } = Dimensions.get("window");
 
@@ -27,6 +28,16 @@ const CORRECT_PIN = "1234";
 const LockControl = () => {
   const [isLocked, setIsLocked] = useState(true);
   const [ModalVisible, setModalVisible] = useState(false);
+  const [notifVisible, setNotifVisible] = useState(false);
+  const [notifMessage, setNotifMessage] = useState('');
+
+  const showNotification = (msg: string, autoHide = true) => {
+    setNotifMessage(msg);
+    setNotifVisible(true);
+    if (!autoHide) {
+
+    }
+  };
 
   useEffect(() => {
     setModalVisible(true);
@@ -54,7 +65,7 @@ const LockControl = () => {
       setModalVisible(false);
 
     } else {
-      Alert.alert("Error", "Incorrect PIN, try again!");
+      showNotification("Incorrect PIN, Try Again!");
       setPin("");
     }
   };
@@ -65,6 +76,12 @@ const LockControl = () => {
       {/* Modal Card */}
       
     {/* </View> */}
+    <TopNotification
+                message={notifMessage}
+                visible={notifVisible}
+                onHide={() => setNotifVisible(false)}
+                duration={3000}
+              />
     <View style={styles.container}>
 
       {/* Back button */}
@@ -94,11 +111,12 @@ const LockControl = () => {
         Tap to {isLocked ? "Unlock" : "Lock"}
       </Text>
     </View>
+
     <Modal isVisible={ModalVisible}
     style={styles.bottomModal}>
     <View style={styles.modalCard}>
       <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <FontAwesome5 name="arrow-left" size={24} color="#000" />
+          <Image source={require('../assets/images/EDen/Arrow.png')} style={{width: width * 0.06, height: width * 0.06, left: width * 0.05}}/>
          </TouchableOpacity>
         <Text style={styles.title}>Enter Lock Pin</Text>
 
@@ -170,29 +188,20 @@ const styles = StyleSheet.create({
 //   },
   modalCard: {
     backgroundColor: "#fffefeff",
-    // bottom: width * 0.005,
-    paddingVertical: width * 0.57,
+    paddingVertical: width * 0.17,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     alignItems: 'center',
-    // bottom: width * 0.058,
-
-
   },
-  // backBtn: {
-  //   alignSelf: "flex-start",
-  //   marginBottom: 10,
-  // },
   title: { 
-    fontSize: 18, 
-    fontWeight: "bold", 
+    fontSize: 18,
     marginBottom: 20,
-    bottom: width * 0.5,
-    fontFamily: 'Montserrat-ExtraBold', 
+    bottom: width * 0.095,
+    fontFamily: 'Montserrat-Bold', 
   },
   otpContainer: { 
     justifyContent: "center", 
-    bottom: width * 0.4,  
+
   },
   otpBox: {
     borderWidth: 1,
@@ -210,7 +219,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: width * 0.35,
     borderRadius: 12,
-    bottom: width *0.36,
   },
   bottomModal:{
     justifyContent: 'flex-end',

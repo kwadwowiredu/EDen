@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   message: {
-    fontSize: width * 0.035,
+    fontSize: width * 0.036,
     left: width * 0.08,
   },
 });

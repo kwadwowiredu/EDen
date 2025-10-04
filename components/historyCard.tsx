@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   message: {
-    fontSize: width * 0.042,
+    fontSize: width * 0.036,
     left: width * 0.05,
     flexShrink: 1,
     fontFamily: "Montserrat-Regular",

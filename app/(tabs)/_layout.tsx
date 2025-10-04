@@ -3,8 +3,8 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { HapticTab } from '../../components/haptic-tab';
 import { Colors } from '../../constants/Colors';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { useColorScheme } from '../../hooks/use-color-scheme';
-import { useNotifications } from '../NotificationContext';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();

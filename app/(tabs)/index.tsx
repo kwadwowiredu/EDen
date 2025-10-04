@@ -1,8 +1,16 @@
-import { Dimensions, StyleSheet, Text, Touchable, TouchableOpacity, View, FlatList } from 'react-native'
-import React from 'react'
+import { FontAwesome } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { Building2, DoorClosed } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Modal from 'react-native-modal';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
-import { router } from 'expo-router'
+import LockCards from '../../components/LockCards';
+import TopNotification from '../../components/TopNotification';
+import { Colors } from "../../constants/Colors";
+import { useBuilding } from "../../contexts/BuildingContext";
+
+
 
 const { width, height } = Dimensions.get('window');
 
@@ -12,81 +20,119 @@ type LockItem = {
   status: string;
 };
 
-// const goNextLockScreen = () => {
-//   router.push('./app/OnboardingScreen.tsx')
-// }
 
-const locksData: LockItem[] = [
-  { id: '1', name: 'Main Door', status: 'Locked' },
-  { id: '2', name: 'Bedroom 1', status: 'Unlocked' },
-  { id: '3', name: 'Bedroom 2', status: 'Unlocked' }, 
-  { id: '4', name: 'Backdoor', status: 'Unlocked' },
-  { id: '5', name: 'Garage', status: 'Unlocked' },
-  { id: '6', name: 'Office', status: 'Locked' },
-  { id: '7', name: 'Guest Room', status: 'Locked' },
-];
-
-const renderLockCard = ({ item }: { item: LockItem }) => {
-  const isLocked = item.status === 'Locked';
-
-  return (
-    <View style={styles.card}>
-      <FontAwesome5
-        name="door-closed"
-        size={30}
-        color="#000"
-        style={{ marginBottom: 5 }}
-      />
-      <Text style={styles.cardTitle}>{item.name}</Text>
-      <TouchableOpacity
-        onPress={() => {router.push('/LockControl')}}
-        style={[
-          styles.statusBadge,
-          { backgroundColor: isLocked ? "green" : "red" },
-        ]}
-      >
-        <Text style={styles.statusText}>{item.status}</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
 
 const index = () => {
+  const [username, setUsername] = useState('Ama');
+  const initial = username?.trim()?.charAt(0)?.toUpperCase() ?? '?';
+  const { state, changeBuilding } = useBuilding();
+  const [isModalVisible1, setModalVisible1] = useState(false)
+
+
+   const [notifVisible, setNotifVisible] = useState(false);
+    const [notifMessage, setNotifMessage] = useState('');
+  
+    const showNotification = (msg: string, autoHide = true) => {
+      setNotifMessage(msg);
+      setNotifVisible(true);
+      if (!autoHide) {
+  
+      }
+    };
+
+  const openModal1 = () => {
+    setModalVisible1(true); 
+  };
+  const closeModal1 = () => {
+    setModalVisible1(false)
+  };
+
+  const gotoSettings = () => {
+    router.push('/settings');
+  };
+
   return (
+    <>
+    <TopNotification
+                message={notifMessage}
+                visible={notifVisible}
+                onHide={() => setNotifVisible(false)}
+                duration={3000}
+              />
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.profileCircle}>
-          <Text style={styles.initials}>KY</Text>
+        <TouchableOpacity style={{marginRight: width * 0.06}} onPress={gotoSettings}>
+          <View style={styles.circle}>
+                    <Text style={styles.initial}>{initial}</Text>
+                  </View>
         </TouchableOpacity>
 
-        <View>
+        <View style={{right: width * 0.03,}}>
           <Text style={styles.welcomeText}>Welcome Home,</Text>
-          <Text style={styles.username}>Kwadwo</Text>
+          <Text style={styles.username}>{username}</Text>
         </View>
 
-        <TouchableOpacity style={styles.right}>
-          <FontAwesome name='building-o' size={30} color='#979EF6' style={{marginRight: 5}} />
-          <FontAwesome name='angle-down' size={20} color='#979EF6'/>
+        <TouchableOpacity style={styles.right} onPress={openModal1}>
+          <Building2 size={30} color='#000000ff' style={{marginRight: 5}} />
+          <FontAwesome name='angle-down' size={20} color='#000000ff'/>
         </TouchableOpacity>
       </View>
 
       <Text style={styles.sectionTitle}>My Devices</Text>
 
       <View style={styles.locksHeader}>
-        <FontAwesome5 name='door-closed' size={20} color='#979EF6' style={{marginRight: 10}} />
+        <DoorClosed size={20} color='#000000ff' />
         <Text style={styles.locksText}>Locks</Text>
       </View>
 
-        <FlatList
-        data={locksData}
-        renderItem={renderLockCard}
-        keyExtractor={(item) => item.id}
-        numColumns={3}
-        columnWrapperStyle={styles.row}
-        contentContainerStyle={{ paddingVertical: 10 }}
-        showsHorizontalScrollIndicator={false}
-      />     
+      <Modal
+        isVisible={isModalVisible1}
+        onBackdropPress={closeModal1}
+        swipeDirection={['down']}
+        onSwipeComplete={closeModal1}
+        avoidKeyboard={false}
+        useNativeDriver={true}
+        onBackButtonPress={closeModal1}
+        style={styles.centerModal}
+      >
+        <View style={[styles.modalContent1, { height: height * 0.35 }]}>
+            <Text style={[styles.headingModal, { marginBottom: 10 }]}>Select Building</Text>
+      
+            <TouchableOpacity
+              style={styles.buildingButton}
+              onPress={async () => {
+                await changeBuilding({ id: "buildingA", name: "Building A" });
+                closeModal1();
+              }}
+            >
+              <Text style={styles.buildingText}>🏢 Building A</Text>
+            </TouchableOpacity>
+      
+            <TouchableOpacity
+              style={styles.buildingButton}
+              onPress={async () => {
+                await changeBuilding({ id: "buildingB", name: "Building B" });
+                closeModal1();
+              }}
+            >
+              <Text style={styles.buildingText}>🏢 Building B</Text>
+            </TouchableOpacity>
+      
+            <TouchableOpacity
+              style={[styles.addBuildingButton, { marginTop: 15 }]}
+              onPress={() => {
+                closeModal1();
+                showNotification("Still under construction, boss");
+              }}
+            >
+              <Text style={styles.addBuildingText}>+ Add Building</Text>
+            </TouchableOpacity>
+          </View>
+      </Modal>
+
+        <LockCards />   
     </SafeAreaView>
+    </>
   )
 }
 
@@ -103,9 +149,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#fff',
     padding: 15,
-    borderRadius: 12,
+    borderRadius: 19,
     width: '90%',
-    height: 100,
+    height: width * 0.2,
     marginBottom: 30,
     alignItems: 'center',
   },
@@ -129,12 +175,13 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 20,
     color: '#333',
-    fontWeight: '600',
+    fontFamily: 'Montserrat-Bold',
+    top: width * 0.035,
   },
 
   username: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: 28,
+    fontFamily: 'Montserrat-Bold',
     color: '#979EF6',
   },
 
@@ -145,8 +192,8 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 25,
+    fontFamily: 'Montserrat-Bold',
     textAlign: "center",
     marginBottom: 15,
   },
@@ -155,50 +202,88 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     width: '90%',
-    marginBottom: 10,
+    bottom: width * 0.025,
+    left: width * 0.005,
+    marginBottom: 0,
   },
 
   locksText: {
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 23,
+    fontFamily: 'Montserrat-Bold',
+    marginLeft: width * 0.02,
   },
 
-  row: {
-    justifyContent: "space-between",
-    marginBottom: 15,
+  circle: {
+    backgroundColor: '#979EF6',
+    width: width * 0.15,
+    height: width * 0.15,
+    borderRadius: (width * 0.65) / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
-  card: {
-    backgroundColor: "#fff",
-    padding: 15,
-    borderRadius: 8,
+  initial: {
+    color: '#fffbfbff',
+    fontSize: width * 0.07, // large letter
+    fontFamily: 'Montserrat-Bold',
+  },
+  centerModal: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 0,
+  },
+  buildingButton: {
+    backgroundColor: "#f3f3f3",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    width: "100%",
     alignItems: "center",
-    justifyContent: "center",
-    width: width * 0.28,
-    marginHorizontal: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    marginVertical: 6,
   },
 
-  cardTitle: {
-    fontSize: 14,
-    fontWeight: "500",
-    marginBottom: 8,
-    textAlign: "center",
+  buildingText: {
+    fontSize: 16,
+    fontFamily: "Montserrat-SemiBold",
+    color: "#333",
   },
 
-  statusBadge: {
-    paddingHorizontal: width * 0.02,
-    paddingVertical: height * 0.005,
-    borderRadius: 20,
+  addBuildingButton: {
+    borderColor: Colors.light.primary,
+    borderWidth: 1.5,
+    paddingVertical: 10,
+    borderRadius: 10,
+    width: "100%",
+    alignItems: "center",
   },
 
-  statusText: {
-     color: "#fff",
-     fontWeight: "bold",
-     fontSize: 12,
-  }
+  addBuildingText: {
+    fontSize: 16,
+    fontFamily: "Montserrat-SemiBold",
+    color: Colors.light.primary,
+  },
+  modalContent1: {
+    width: width * 0.8,
+    height: height * 0.2,
+    backgroundColor: '#fff',
+    padding: 24,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headingModal1: {
+    fontSize: 18, 
+    fontWeight: '600',
+    textAlign: 'center', 
+    marginBottom: 24,
+    top: width * -0.05,
+    alignItems: 'center',
+  },
+  headingModal: {
+    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 18, 
+    fontWeight: '600',
+    textAlign: 'center', 
+    marginBottom: 24,
+  },
 });
