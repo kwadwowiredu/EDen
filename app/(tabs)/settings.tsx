@@ -117,7 +117,7 @@ const [linkedAccounts, setLinkedAccounts] = useState([
     setModalVisible(true); 
     setModalContent(contentType);
   };
-    const openModal1 = () => {
+  const openModal1 = () => {
     setModalVisible1(true); 
   };
   const closeModal1 = () => {
@@ -452,17 +452,16 @@ const [linkedAccounts, setLinkedAccounts] = useState([
             <Text style={styles.title}>Log Out</Text>
         </TouchableOpacity>
       </View>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'height' : undefined} >
-        <ScrollView   contentContainerStyle={{ flexGrow: 1 }}
-  keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView style={{ flex: 1 }}  >
+        <ScrollView   contentContainerStyle={{ flexGrow: 1 }}>
       <Modal
   style={styles.bottomModal}
   isVisible={isModalVisible}
   onBackdropPress={closeModal}
   swipeDirection={['down']}
   onSwipeComplete={closeModal}
-  avoidKeyboard={false}
-  useNativeDriver={true}
+  // avoidKeyboard={false}
+  // useNativeDriver={true}
   onBackButtonPress={closeModal}
 >
   <View style={styles.modalContent}>
