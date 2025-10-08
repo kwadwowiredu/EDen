@@ -3,17 +3,15 @@ import { AntDesign, Feather, FontAwesome, Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    BackHandler,
-    Dimensions,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  BackHandler,
+  Dimensions,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import Modal from 'react-native-modal';
 import TopNotification from '../../components/TopNotification';
@@ -534,6 +532,7 @@ const [linkedAccounts, setLinkedAccounts] = useState([
 
       <TouchableOpacity
         style={[styles.buildingButton1, {backgroundColor: Colors.light.primary}]}
+        onPress={closeModal2}
       >
         <Text style={[styles.buildingText, {color: Colors.light.background}]}>No</Text>
       </TouchableOpacity>
@@ -562,6 +561,7 @@ const [linkedAccounts, setLinkedAccounts] = useState([
 
       <TouchableOpacity
         style={[styles.buildingButton1, {backgroundColor: Colors.light.primary}]}
+        onPress={closeModal3}
       >
         <Text style={[styles.buildingText, {color: Colors.light.background}]}>No</Text>
       </TouchableOpacity>
@@ -571,7 +571,7 @@ const [linkedAccounts, setLinkedAccounts] = useState([
 </Modal>
 
       </ScrollView>
-      </KeyboardAvoidingView>
+      {/* </KeyboardAvoidingView> */}
     </ScrollView>
     </>
     
