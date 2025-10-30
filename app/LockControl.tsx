@@ -1,12 +1,16 @@
-import { FontAwesome5 } from "@expo/vector-icons";
+import { AntDesign, FontAwesome5, Ionicons, } from "@expo/vector-icons";
 import { useFonts } from 'expo-font';
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
-import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Dimensions, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Modal from 'react-native-modal';
 import OTPTextInput from 'react-native-otp-textinput';
 import TopNotification from '../components/TopNotification';
 import { Colors } from "../constants/Colors";
+import { useBuilding } from "../contexts/BuildingContext";
+import { useLocks } from "../contexts/LocksContext";
+import { useUser } from "../contexts/UserContext";
+
 
 
 const { width, height } = Dimensions.get("window");
@@ -14,6 +18,58 @@ const { width, height } = Dimensions.get("window");
 const CORRECT_PIN = "1234";
 
 const LockControl = () => {
+  const [isModalVisible1, setModalVisible1] = useState(false)
+  const existingPassword = 'mypassword123';
+
+  const { state: buildingState } = useBuilding();
+  const buildingId = buildingState.current?.id ?? "buildingA"; // fallback if none
+  const { user } = useUser();
+  const { toggleLock, setLockStatus } = useLocks();
+
+    const toggleLockLocal = () => {
+  // update local UI first if you want
+  setIsLocked(prev => !prev);
+
+  // update shared state + history
+  // note: params.id is the lock id passed via router params (keep using it)
+  const lockId = (params?.id as string) || "lock_main";
+  const username = user.username || "Unknown";
+
+  toggleLock(buildingId, lockId, username);
+};
+
+
+
+
+    const handleChangePassword = () => {
+    if (newPassword !== confirmPassword) {
+      showNotification('New PINs do not match.');
+      return;
+    }
+    if (newPassword.length < 4) {
+      showNotification('New PIN must be at least 4 characters.');
+      
+      return;
+    }
+    closeModal();
+    showNotification('Your PIN has been changed successfully!');
+    
+    setOldPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    
+  };
+
+  const openModal = () => {
+    setModalVisible(false);
+    setModalVisible1(true); 
+
+  };
+
+  const closeModal = () => {
+    setModalVisible1(false); 
+  };
+
   // optional params from navigation (name/status)
   const params = useLocalSearchParams<{ id?: string; name?: string; status?: string }>();
   const initialName = (params?.name as string) || "Main Door";
@@ -27,6 +83,17 @@ const LockControl = () => {
   const [notifVisible, setNotifVisible] = useState(false);
   const [notifMessage, setNotifMessage] = useState('');
 
+
+  
+
+    const [oldPassword, setOldPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+  
+    const [showOld, setShowOld] = useState(false);
+    const [showNew, setShowNew] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
+
   const showNotification = (msg: string, autoHide = true) => {
     setNotifMessage(msg);
     setNotifVisible(true);
@@ -36,8 +103,6 @@ const LockControl = () => {
   useEffect(() => {
     setModalVisible(true);
   }, []);
-
-  const toggleLock = () => setIsLocked(prev => !prev);
 
   const [fontsLoaded] = useFonts({
     'Montserrat-Black': require('../assets/fonts/Montserrat-Black.ttf'),
@@ -95,7 +160,7 @@ const LockControl = () => {
         {/* Big Lock Button */}
         <TouchableOpacity
           style={[styles.lockButton, { backgroundColor: "#fff" }]}
-          onPress={toggleLock}
+          onPress={toggleLockLocal}
         >
           <FontAwesome5
             name={isLocked ? "lock" : "lock-open"}
@@ -113,16 +178,18 @@ const LockControl = () => {
         {/* Edit Lock button */}
         <TouchableOpacity
           style={styles.editBtn}
-          onPress={() => {
-            // router.push({ pathname: "/EditLock", params: { id: params?.id, name: initialName } });
-            showNotification("Edit Lock is under construction 🔧");
-          }}
+          onPress={openModal}
         >
+          <AntDesign name="edit" size={18} color={Colors.light.primary} />
+
           <Text style={styles.editBtnText}>Edit Lock</Text>
         </TouchableOpacity>
       </View>
 
-      <Modal isVisible={ModalVisible} style={styles.bottomModal}>
+      <Modal isVisible={ModalVisible} style={styles.bottomModal}
+      avoidKeyboard={true}
+      useNativeDriver={true}
+      >
         <View style={styles.modalCard}>
           {/* Modal back control (image arrow) */}
           <TouchableOpacity onPress={() => router.back()} style={styles.modalBackBtn}>
@@ -147,6 +214,79 @@ const LockControl = () => {
           </TouchableOpacity>
         </View>
       </Modal>
+      <Modal
+        style={styles.bottomModal}
+        isVisible={isModalVisible1}
+        onBackdropPress={closeModal}
+        swipeDirection={['down']}
+        onSwipeComplete={closeModal}
+        avoidKeyboard={true}
+        useNativeDriver={true}
+        onBackButtonPress={closeModal}
+      >
+          <View style={styles.modalContent}>
+          {/* <View style={styles.handle}/> */}
+          <View style={{top: width * 0.08,}}>
+            <View style={{bottom: width * 0.01}}>
+          <TouchableOpacity
+          onPress={closeModal}>
+           <Ionicons name='arrow-back' size={28}
+            style={{ top: width * 0.023, left: width * 0.04, }}
+            resizeMode="contain"
+           />
+           </TouchableOpacity>
+           <Text style={styles.forgettext1}>Edit Lock</Text>
+           </View>
+            
+                  <View style={styles.inputContainer}>
+                      <TextInput 
+                          value={oldPassword} 
+                          onChangeText={setOldPassword}
+                          placeholder="Main Door"
+                          placeholderTextColor='#595C5E'
+                          style={styles.input}
+                      />
+                      </View>
+                      <View style={styles.inputContainer}>
+                       {/* <Feather name="mail" size={20} color="#888" style={styles.icon1} /> */}
+                      <TextInput 
+                          value={newPassword} 
+                          onChangeText={setNewPassword}
+                          placeholder="Enter New PIN"
+                          placeholderTextColor='#595C5E'
+                          maxLength={4} 
+                          secureTextEntry={!showNew}
+                          keyboardType='number-pad'
+                          style={styles.input}
+                      />
+                      <TouchableOpacity onPress={() => setShowNew(!showNew)} style={{position: "absolute", right: width * 0.08, top: width * 0.05,}}>
+                        <Ionicons name={showNew ? 'eye' : 'eye-off'} size={20} color="#888" />
+                      </TouchableOpacity>
+                      </View>
+                      <View style={styles.inputContainer}>
+                       {/* <Feather name="phone" size={20} color="#888" style={styles.icon1} /> */}
+                      <TextInput 
+                          value={confirmPassword} 
+                          onChangeText={setConfirmPassword}
+                          placeholder="Confirm New PIN"
+                          maxLength={4}
+                          secureTextEntry={!showConfirm}
+                          placeholderTextColor='#595C5E'
+                          keyboardType='number-pad'
+                          style={styles.input}
+                      />
+                      <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)} style={{position: "absolute", right: width * 0.08, top: width * 0.05,}}>
+                        <Ionicons name={showConfirm ? 'eye' : 'eye-off'} size={20} color="#888" />
+                      </TouchableOpacity>
+                      </View>
+                                    <TouchableOpacity onPress={handleChangePassword}>
+                                        <Text style={styles.button}>
+                                            Save
+                                            </Text>
+                                    </TouchableOpacity> 
+                    </View>                              
+        </View>
+          </Modal>
     </>
   );
 };
@@ -167,7 +307,7 @@ const styles = StyleSheet.create({
   // Header row
   headerBar: {
     position: "absolute",
-    top: width * 0.13,
+    top: width * 0.18,
     left: width * 0.05,
     right: width * 0.05,
     flexDirection: "row",
@@ -176,28 +316,27 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   headerBackBtn: {
-    width: SIDE_BTN_SIZE,
-    height: SIDE_BTN_SIZE,
-    borderRadius: SIDE_BTN_SIZE / 2,
-    backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
+    left: width * 0.02,
   },
   headerTitle: {
     flex: 1,
-    textAlign: "center",
-    fontSize: 18,
+    textAlign: "left",
+    fontSize: width * 0.055,
     fontFamily: "Montserrat-Bold",
-    color: "#181F70",
+    color: "black",
     paddingHorizontal: 8,
+    left: width * 0.02,
   },
   statusPill: {
-    minWidth: SIDE_BTN_SIZE,            // balances with back button width
+    minWidth: SIDE_BTN_SIZE,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
+    right: width * 0.05,
   },
   statusPillText: {
     color: "#fff",
@@ -208,7 +347,7 @@ const styles = StyleSheet.create({
   // Main lock UI
   statusText: {
     fontSize: 22,
-    fontWeight: "bold",
+    fontFamily: 'Montserrat-Bold',
     marginBottom: 10,
     color: "#181F70",
   },
@@ -227,31 +366,29 @@ const styles = StyleSheet.create({
   },
   tapText: {
     fontSize: 16,
-    fontWeight: "500",
+    fontFamily: 'Montserrat-SemiBold',
     color: "#555",
   },
 
-  // Edit button
   editBtn: {
     marginTop: 24,
-    borderWidth: 1.5,
-    borderColor: Colors.light.primary,
+    flexDirection: 'row',
+    gap: width * 0.01,
     paddingVertical: 12,
     paddingHorizontal: width * 0.24,
-    borderRadius: 12,
-    backgroundColor: "#fff",
+    top: width * 0.35,
   },
   editBtnText: {
     color: Colors.light.primary,
-    fontFamily: "Montserrat-SemiBold",
+    fontFamily: "Montserrat-Italic",
     fontSize: 16,
     textAlign: "center",
+    textDecorationLine: 'underline',
   },
 
-  // Modal
   modalCard: {
     backgroundColor: "#fffefeff",
-    paddingVertical: width * 0.8,
+    paddingVertical: width * 0.17,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     alignItems: 'center',
@@ -288,12 +425,56 @@ const styles = StyleSheet.create({
   },
   enterText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
 
-  // Modal-only back control
   modalBackBtn: {
     position: "absolute",
     top: width * 0.05,
     left: width * 0.02,
     padding: 6,
     borderRadius: 24,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    paddingTop: width * 0.001,
+    paddingHorizontal: 24,
+    borderTopLeftRadius: 38,
+    borderTopRightRadius: 38,
+    paddingBottom: width * 0.13,
+  },
+  forgettext1:{
+    fontSize: width * 0.05,
+    fontFamily: 'Montserrat-Bold',
+    bottom: width * 0.05,
+
+    marginBottom: 0,
+    textAlign: 'center',
+  },
+  inputContainer: {
+
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: Colors.light.primary,
+    padding: width * 0.03,
+    borderRadius: 15,
+    fontSize: width * 0.045, 
+    marginBottom: height * 0.032, 
+    justifyContent: 'center',
+    paddingHorizontal: width * 0.04, 
+    marginHorizontal: width * 0.02, 
+    marginVertical: height * 0.005, 
+    fontFamily: 'Montserrat-Regular',
+    paddingLeft: width * 0.05,
+  },
+  button:{
+    backgroundColor: Colors.light.primary,
+    top: width * 0.028,
+    color: '#fff',
+    textAlign: 'center',
+    paddingVertical: height * 0.01,
+    borderRadius: 15,
+    fontSize: width * 0.055, 
+    marginHorizontal: width * 0.001, 
+    marginVertical: height * 0.01, 
+    fontFamily: 'Montserrat-SemiBold',
   },
 });

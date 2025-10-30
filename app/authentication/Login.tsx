@@ -1,4 +1,5 @@
 import { Feather } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
 import { Link, router } from 'expo-router';
 import React, { FC, useState } from "react";
@@ -16,7 +17,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import TopNotification from '../../components/TopNotification';
 import { Colors } from '../../constants/Colors';
 
+
 const { width, height } = Dimensions.get('window');
+const API_BASE = 'https://eden-backend-cref.onrender.com';
 
 const styles = StyleSheet.create({
     container: {
@@ -255,40 +258,81 @@ const LoginScreen: FC = () => {
 
     {/* login handler to send data to backend */}
     const handleLogin = async () => {
-        if (!email || !password) {
-        showNotification("Enter a valid email or password");
-        return;
-        }
-        {
-            /*  
-        
-        else{
-            try {
-                const response = await fetch('###', {
-                    method: 'POST',
-                    headers: {'Content-Type': "application/json"},
-                    body: JSON.stringify({studentID, password})
-                })
-                const data = await response.json();
+  if (!email || !password) {
+    showNotification("Enter a valid email or password");
+    return;
+  }
 
-                if (!data.success){
-                    setErrorMessage('Incorrect student ID or password');
-                    return;
-                }
+  // clear previous local error state
+  setErrorMessage('');
+  setNotifMessage('');
+  setNotifVisible(false);
 
-                setErrorMessage('');
-                router.push('/(tabs)/a_home')
-                
-            }
-            catch(error){
-                console.error(error);
-                setErrorMessage("Something went wrong. Try again later");
-            }
-        }
-            */}
-        router.push('/(tabs)')
-        
+  try {
+    const url = `${API_BASE}/user/token/`;
+    console.log('[login] POST', url);
+
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    console.log('[login] status', resp.status, resp.statusText);
+
+    // read body safely
+    const text = await resp.text();
+    let data: any = null;
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = text;
     }
+    console.log('[login] body:', data);
+
+    if (resp.status === 200) {
+      // expected response { access: "...", refresh: "..." }
+      const access = data.access;
+      const refresh = data.refresh;
+
+      if (access) await AsyncStorage.setItem('accessToken', access);
+      if (refresh) await AsyncStorage.setItem('refreshToken', refresh);
+
+      showNotification('Logged in successfully');
+      // navigate into your app
+      router.replace('/(tabs)/explore');
+      return;
+    }
+
+    // Non-200 responses: try to show server message
+    if (data) {
+      if (typeof data === 'string') {
+        showNotification(data);
+        setErrorMessage(data);
+      } else if (data.detail || data.message) {
+        showNotification(data.detail || data.message);
+        setErrorMessage(data.detail || data.message);
+      } else {
+        // field errors like { email: ["..."], password: ["..."] }
+        const firstKey = Object.keys(data)[0];
+        const val = data[firstKey];
+        const msg = Array.isArray(val) ? val.join(' ') : String(val);
+        showNotification(msg || 'Login failed');
+        setErrorMessage(msg || 'Login failed');
+      }
+    } else {
+      showNotification('Login failed. Try again.');
+      setErrorMessage('Login failed. Try again.');
+    }
+  } catch (err: any) {
+    console.log('[login] network/error', err && err.message ? err.message : err);
+    showNotification('Network error. Check server URL or network.');
+    setErrorMessage('Network error. Check server URL or network.');
+  }
+};
 
     return(
         <>

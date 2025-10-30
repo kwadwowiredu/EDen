@@ -17,12 +17,15 @@ import Modal from 'react-native-modal';
 import TopNotification from '../../components/TopNotification';
 import { Colors } from "../../constants/Colors";
 import { useBuilding } from "../../contexts/BuildingContext";
+import { useUser } from "../../contexts/UserContext";
 
 
 
 const { width, height } = Dimensions.get('window');
 
 export default function Settings() {
+
+  const { user, setUser } = useUser();
 
 const [linkedAccounts, setLinkedAccounts] = useState([
   { id: 1, username: "Ama", email: "ama@example.com", isActive: true },
@@ -44,8 +47,8 @@ const [linkedAccounts, setLinkedAccounts] = useState([
 
 
   // TODO: replace these with real user data (from context / props / API)
-  const [username, setUsername] = useState('Ama');
-  const [email, setEmail] = useState('ama@example.com');
+  // const [username, setUsername] = useState('Ama');
+  // const [email, setEmail] = useState('ama@example.com');
   const [phonennumber, setphonennumber] = useState('');
 
   const [oldPassword, setOldPassword] = useState('');
@@ -60,16 +63,16 @@ const [linkedAccounts, setLinkedAccounts] = useState([
 
 
   // first letter (uppercased) for avatar
-  const initial = username?.trim()?.charAt(0)?.toUpperCase() ?? '?';
+  const initial = user.username?.trim()?.charAt(0)?.toUpperCase() ?? '?';
   
   const [isModalVisible, setModalVisible] = useState(false)
   const [isModalVisible1, setModalVisible1] = useState(false)
   const [isModalVisible2, setModalVisible2] = useState(false)
   const [isModalVisible3, setModalVisible3] = useState(false)
 
-  const [newEmail, setNewEmail] = useState('');
-  const [newUsername, setNewUsername] = useState('');
-  const [newphonennumber, setNewphonennumber] = useState('');
+  const [newEmail, setNewEmail] = useState(user.email ?? "");
+  const [newUsername, setNewUsername] = useState(user.username ?? "");
+  const [newphonennumber, setNewphonennumber] = useState(user.phone ?? "");
 
   const handleChangePassword = () => {
     if (oldPassword !== existingPassword) {
@@ -98,10 +101,9 @@ const [linkedAccounts, setLinkedAccounts] = useState([
   }
 
   // Proceed only if all fields are filled
-  setEmail(newEmail);
-  setUsername(newUsername);
-  setphonennumber(newphonennumber);
+  setUser({ username: newUsername, email: newEmail, phone: newphonennumber });
   closeModal();
+  showNotification("Profile updated");
 
     // Later
     // 1. send verification to newEmail
@@ -193,9 +195,9 @@ const [linkedAccounts, setLinkedAccounts] = useState([
                       </View>
                                     <TouchableOpacity onPress={handleSave}>
                                         <Text style={styles.button}>
-                                            <View style={{ right: width * 1 }}>
-                                            <Image source={require('../../assets/images/EDen/Vector(1).png')} style={{ right: width * 0.035, top: width *0.006 }}/>
-                                            </View>
+                                            {/* <View style={{ right: width * 1 }}>
+                                            <Image source={require('../../assets/images/EDen/Vector(1).png')}/>
+                                            </View> */}
                                             Save
                                             </Text>
                                     </TouchableOpacity> 
@@ -264,9 +266,6 @@ const [linkedAccounts, setLinkedAccounts] = useState([
                       </View>
                                     <TouchableOpacity onPress={handleChangePassword}>
                                         <Text style={styles.button}>
-                                            <View style={{ right: width * 1 }}>
-                                            <Image source={require('../../assets/images/EDen/Vector(1).png')} style={{ right: width * 0.035, top: width *0.006 }}/>
-                                            </View>
                                             Save
                                             </Text>
                                     </TouchableOpacity> 
@@ -415,8 +414,8 @@ const [linkedAccounts, setLinkedAccounts] = useState([
           <Text style={styles.initial}>{initial}</Text>
         </View>
 
-        <Text style={styles.username}>{username}</Text>
-        <Text style={styles.email}>{email}</Text>
+        <Text style={styles.username}>{user.username}</Text>
+        <Text style={styles.email}>{user.email}</Text>
       </View>
 
       <View style={styles.settings}>
@@ -450,16 +449,15 @@ const [linkedAccounts, setLinkedAccounts] = useState([
             <Text style={styles.title}>Log Out</Text>
         </TouchableOpacity>
       </View>
-      <KeyboardAvoidingView style={{ flex: 1 }}  >
-        <ScrollView   contentContainerStyle={{ flexGrow: 1 }}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <Modal
   style={styles.bottomModal}
   isVisible={isModalVisible}
   onBackdropPress={closeModal}
   swipeDirection={['down']}
   onSwipeComplete={closeModal}
-  // avoidKeyboard={false}
-  // useNativeDriver={true}
+  avoidKeyboard={true}
+  useNativeDriver={true}
   onBackButtonPress={closeModal}
 >
   <View style={styles.modalContent}>
@@ -632,7 +630,7 @@ const styles = StyleSheet.create({
   },
 
   email: {
-    marginTop: 6,
+    marginTop: width * 0.02,
     fontSize: width * 0.039,
     fontFamily: 'Montserrat-Regular',
     color: '#666',

@@ -3,10 +3,11 @@ import React, { useEffect, useState } from 'react';
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import HistoryCard from "../../components/historyCard";
 import { useBuilding } from "../../contexts/BuildingContext";
+import { useLocks } from "../../contexts/LocksContext";
 
 const { width, height } = Dimensions.get('window');
 
-// 🏠 Dummy data for two buildings
+// (keep your dummyBuildings and fetchDataForBuilding if you still want that fallback)
 const dummyBuildings: Record<
   string,
   {
@@ -39,7 +40,6 @@ const dummyBuildings: Record<
   },
 };
 
-// 🔧 Simulated async fetch
 async function fetchDataForBuilding(buildingId: string) {
   await new Promise((resolve) => setTimeout(resolve, 500)); // simulate delay
   return dummyBuildings[buildingId] ?? null;
@@ -47,12 +47,19 @@ async function fetchDataForBuilding(buildingId: string) {
 
 export default function Explore() {
   const { state } = useBuilding();
+  const { getHistoryForBuilding } = useLocks();
+
+  const buildingId = state.current?.id;
+
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
+  // get history from context (returns [] if no buildingId or no history)
+  const contextHistory = getHistoryForBuilding(buildingId);
+
   useEffect(() => {
-    const buildingId = state.current?.id;
-    if (!buildingId) {
+    const id = state.current?.id;
+    if (!id) {
       setData(null);
       return;
     }
@@ -60,17 +67,20 @@ export default function Explore() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const result = await fetchDataForBuilding(buildingId);
+      const result = await fetchDataForBuilding(id);
       if (!cancelled) setData(result);
       setLoading(false);
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [state.current]);
 
-  const history = data?.history || [];
-
-  
+  // finalHistory: prefer context history when present, otherwise fall back to fetched data
+  const finalHistory = (contextHistory && contextHistory.length > 0)
+    ? contextHistory
+    : (data?.history ?? []);
 
   return (
     <ScrollView>
@@ -92,7 +102,7 @@ export default function Explore() {
       {loading ? (
         <Text style={{ textAlign: 'center', marginTop: 20 }}>Loading...</Text>
       ) : (
-        history.map((n: any) => (
+        finalHistory.map((n: any) => (
           <HistoryCard
             key={n.id}
             user={n.user}

@@ -20,6 +20,9 @@ import { Colors } from "../../constants/Colors";
 
 const { width, height } = Dimensions.get('window');
 
+
+const API_BASE = 'https://eden-backend-cref.onrender.com/api/schema/swagger-ui/#/';
+
 const styles = StyleSheet.create({
     backgroundContainer: {
         backgroundColor: Colors.light.background,
@@ -245,6 +248,26 @@ const styles = StyleSheet.create({
         width: '100%',
         bottom: width * 0.13,
     },
+    inputContainer1: {
+        width: '100%',
+        bottom: width * 0.13,
+        paddingHorizontal: width *0.19,
+        marginRight: width * -0.28,
+    },
+    input1: {
+        borderWidth: 1,
+        borderColor: Colors.light.primary,
+        padding: width * 0.03,
+        borderRadius: 8,
+        fontSize: width * 0.045, 
+        marginBottom: height * 0.01, 
+        justifyContent: 'center',
+        paddingHorizontal: width * 0.04, 
+        marginHorizontal: width * -0.04, 
+        marginVertical: height * 0.005, 
+        fontFamily: 'Montserrat-Regular',
+        paddingLeft: width * 0.1,
+    },
     resetbutton: {
         color: "#fff",
         fontFamily: 'Montserrat-SemiBold',
@@ -287,6 +310,7 @@ const SignupScreen: FC = () => {
     const [phonennumber, setphonennumber] = useState('');
     const [signup, setSignup] = useState(false);
     const [firstname, setfirstname] = useState('');
+    const [lastname, setlastname] = useState(''); // <-- added
     const [email, setEmail] = useState('');
     const [password,setpassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -319,15 +343,13 @@ const SignupScreen: FC = () => {
     // Password validation logic
     const passwordsMatch = password === confirmPassword;
     const showPasswordError = password.length > 0 && confirmPassword.length > 0 && !passwordsMatch;
-    const isFormValid = phonennumber && firstname && email && password && confirmPassword && passwordsMatch;
+    const isFormValid = phonennumber && firstname && lastname && email && password && confirmPassword && passwordsMatch;
 
   const handleSignup = async () => {
-  // Validation
+  // validation (keep as is)
   if (!isFormValid) {
     if (!passwordsMatch) {
-      showNotification(
-        'Passwords do not match.'
-      );
+      showNotification('Passwords do not match.');
       return;
     }
     showNotification('Fill all fields correctly');
@@ -335,38 +357,72 @@ const SignupScreen: FC = () => {
   }
 
   setSignup(true);
-  setErrorMessage('');
+  setErrorMessage(''); // clear old error
 
   try {
-    const response = await fetch('###', {
+    const url = `https://eden-backend-cref.onrender.com/user/register/`;
+    console.log('[signup] POST', url);
+
+    const resp = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
       body: JSON.stringify({
-        phoneNumber: phonennumber,
-        firstname,
         email,
+        first_name: firstname,
+        last_name: lastname,
+        phone_number: phonennumber,
         password,
+        confirm_password: confirmPassword,
       }),
     });
 
-    // Try to parse JSON safely
-    let data: any = {};
-    try {
-      data = await response.json();
-    } catch {
-      // leave data as {}
-    }
+    // log status and headers for debugging
+    console.log('[signup] status', resp.status, resp.statusText);
+    console.log('[signup] headers:', JSON.stringify(Object.fromEntries(resp.headers.entries())));
 
-    if (!response.ok || !data.success) {
-      setErrorMessage(data.message || 'Incorrect Phone Number or Email');
+   // try to parse JSON; fall back to text when response is not JSON
+    let data: any = null;
+    const text = await resp.text();
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (e) {
+      // response is not JSON (HTML or plain text). Keep `data` null and show friendly message
+      data = null;
+    }
+    console.log('[signup] body:', data ?? text);
+
+    if (resp.status === 201) {
+      showNotification('Account created successfully');
+      router.push('/(tabs)/explore');
       return;
     }
 
-    setErrorMessage('');
-    router.push('/(tabs)/explore');
-  } catch (error) {
-    // console.error(error);
-    showNotification('Something went wrong. Please try again later');
+    // Non-201 responses: prefer server JSON messages, otherwise show a safe fallback
+    if (data && typeof data === 'object') {
+      if (data.detail || data.message) {
+        showNotification(data.detail || data.message);
+        setErrorMessage(data.detail || data.message);
+      } else {
+        // field errors like { email: ["..."] }
+        const firstKey = Object.keys(data)[0];
+        const val = data[firstKey];
+        const msg = Array.isArray(val) ? val.join(' ') : String(val);
+        showNotification(msg || 'Failed to create account');
+        setErrorMessage(msg || 'Failed to create account');
+      }
+    } else {
+      // non-JSON body (e.g. HTML error page or empty) => show safe generic message
+      const friendly = resp.status >= 500 ? 'Server error. Try again later.' : 'Failed to create account. Check input.';
+      showNotification(friendly);
+      setErrorMessage(friendly);
+    }
+  } catch (err: any) {
+    console.log('[signup] network/error', err && err.message ? err.message : err);
+    showNotification('Network error. Check server URL or network.');
+    setErrorMessage('Network error. Check server URL or network.');
   } finally {
     setSignup(false);
   }
@@ -411,15 +467,27 @@ const SignupScreen: FC = () => {
 
             <View style={{ padding: 16, flex: 1, justifyContent: 'center', bottom: width * 0.1, }}>
                     {/* First Name */}
-                    <View style={styles.inputContainer}>
+                    <View style={{flexDirection: 'row', alignSelf: 'center', right: width * 0.14,}}>
+                    <View style={styles.inputContainer1}>
                         <Feather name="user" size={20} color="#888" style={styles.icon} />
                         <TextInput 
                             value={firstname} 
                             onChangeText={setfirstname} 
-                            placeholder="Username"
+                            placeholder="First Name"
                             placeholderTextColor='#999'
-                            style={styles.input}
+                            style={styles.input1}
                         />
+                    </View>
+                    <View style={styles.inputContainer1}>
+                        <Feather name="user" size={20} color="#888" style={styles.icon} />
+                        <TextInput 
+                            value={lastname} 
+                            onChangeText={setlastname} 
+                            placeholder="Last Name"
+                            placeholderTextColor='#999'
+                            style={styles.input1}
+                        />
+                    </View>
                     </View>
 
                 {/* Email */}
@@ -510,9 +578,9 @@ const SignupScreen: FC = () => {
                         </TouchableOpacity>
 
 
-                {ErrorMessage !== '' && (
+                {/* {ErrorMessage !== '' && (
                     <Text style={{color: 'red', marginTop: 8}}>{ErrorMessage}</Text>
-                )}
+                )} */}
 
                 
                 {/* Sign In Link */}

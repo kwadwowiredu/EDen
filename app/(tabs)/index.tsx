@@ -1,4 +1,4 @@
-import { FontAwesome } from '@expo/vector-icons';
+import { Feather, FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Building2, DoorClosed } from 'lucide-react-native';
 import React, { useState } from 'react';
@@ -9,6 +9,7 @@ import LockCards from '../../components/LockCards';
 import TopNotification from '../../components/TopNotification';
 import { Colors } from "../../constants/Colors";
 import { useBuilding } from "../../contexts/BuildingContext";
+import { useUser } from "../../contexts/UserContext";
 
 
 
@@ -23,8 +24,12 @@ type LockItem = {
 
 
 const index = () => {
-  const [username, setUsername] = useState('Ama');
-  const initial = username?.trim()?.charAt(0)?.toUpperCase() ?? '?';
+
+  const { user } = useUser();
+  const username = user.username;
+
+  // const [username, setUsername] = useState('Ama');
+  const initial = user.username?.trim()?.charAt(0)?.toUpperCase() ?? '?';
   const { state, changeBuilding } = useBuilding();
   const [isModalVisible1, setModalVisible1] = useState(false)
 
@@ -128,9 +133,17 @@ const index = () => {
               <Text style={styles.addBuildingText}>+ Add Building</Text>
             </TouchableOpacity>
           </View>
-      </Modal>
-
-        <LockCards />   
+      </Modal> 
+        <LockCards/>
+        <View>
+            <TouchableOpacity
+                    activeOpacity={0.9}
+                    style={styles.card}
+                    onPress={() => router.push('/LockScan')} 
+                  >
+                    <Feather name='plus' size={30} />
+                  </TouchableOpacity>
+          </View>
     </SafeAreaView>
     </>
   )
@@ -143,6 +156,19 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     marginTop: 20,
+  },
+  card: {
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 45,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 5,
+    flexDirection: 'row',
+    width: 75,
+    height: 75,
+    bottom: width * 0.2,
+    left: width * 0.33,
   },
 
   header: {

@@ -1,27 +1,33 @@
+// components/LockCards.tsx
 import { router } from 'expo-router';
 import { DoorClosed } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
 import { Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Modal from 'react-native-modal';
+import { useBuilding } from '../contexts/BuildingContext';
+import { useLocks } from '../contexts/LocksContext';
 
 const { width, height } = Dimensions.get('window');
 
 type LockItem = {
   id: string;
   name: string;
-  status: 'Locked' | 'Unlocked';
+  status: 'locked' | 'unlocked';
 };
 
-const dummyLocksData: LockItem[] = [
-  { id: '1', name: 'Main Door',   status: 'Locked'   },
-  { id: '2', name: 'Bedroom 1',   status: 'Unlocked' },
-  { id: '3', name: 'Bedroom 2',   status: 'Unlocked' },
-  { id: '4', name: 'Backdoor',    status: 'Unlocked' },
-  { id: '5', name: 'Garage',      status: 'Unlocked' },
-  { id: '6', name: 'Office',      status: 'Locked'   },
-];
-
 const LockCards = () => {
+  const { state } = useBuilding();
+  const buildingId = state.current?.id ?? 'buildingA'; // fallback if none selected
+
+  const { getLocksForBuilding } = useLocks();
+  // live locks for current building (from context)
+  const locks: LockItem[] = getLocksForBuilding(buildingId).map(l => ({
+    id: l.id,
+    name: l.name,
+    // ensure status is always lowercase 'locked'|'unlocked'
+    status: (String(l.status).toLowerCase() === 'locked' ? 'locked' : 'unlocked') as 'locked' | 'unlocked',
+  }));
+
   const [statusModalVisible, setStatusModalVisible] = useState(false);
   const [selected, setSelected] = useState<LockItem | null>(null);
 
@@ -29,10 +35,14 @@ const LockCards = () => {
     setSelected(item);
     setStatusModalVisible(true);
   };
-  const closeStatusModal = () => setStatusModalVisible(false);
+  const closeStatusModal = () => {
+    setSelected(null);
+    setStatusModalVisible(false);
+  };
 
   const renderLockCard = ({ item }: { item: LockItem }) => {
-    const isLocked = item.status === 'Locked';
+    const isLocked = item.status === 'locked';
+    const label = isLocked ? 'Locked' : 'Unlocked';
 
     return (
       <TouchableOpacity
@@ -40,8 +50,8 @@ const LockCards = () => {
         style={styles.card}
         onPress={() =>
           router.push({
-            pathname: '/LockControl', // update if your file lives in a route group e.g. '/(tabs)/LockControl'
-            params: { id: item.id, name: item.name, status: item.status },
+            pathname: '/LockControl', // adjust path if your route differs
+            params: { id: item.id, name: item.name, status: item.status }, // pass lowercase status
           })
         }
         onLongPress={() => openStatusModal(item)}
@@ -56,15 +66,15 @@ const LockCards = () => {
             { backgroundColor: isLocked ? '#22c55e' : '#ef4444' },
           ]}
         >
-          <Text style={styles.statusText}>{item.status}</Text>
+          <Text style={styles.statusText}>{label}</Text>
         </View>
       </TouchableOpacity>
     );
   };
 
-  // precompute colors for modal
+  // memoized modal badge styles based on selected
   const modalBadgeStyles = useMemo(() => {
-    const locked = selected?.status === 'Locked';
+    const locked = selected?.status === 'locked';
     return {
       bg: locked ? '#22c55e' : '#ef4444',
       label: locked ? 'Locked' : 'Unlocked',
@@ -74,7 +84,7 @@ const LockCards = () => {
   return (
     <>
       <FlatList
-        data={dummyLocksData}
+        data={locks}
         renderItem={renderLockCard}
         keyExtractor={(item) => item.id}
         numColumns={3}
@@ -88,7 +98,7 @@ const LockCards = () => {
         isVisible={statusModalVisible}
         onBackdropPress={closeStatusModal}
         onBackButtonPress={closeStatusModal}
-        useNativeDriver
+        useNativeDriver={false}
         style={styles.centerModal}
       >
         <View style={styles.modalCard}>
