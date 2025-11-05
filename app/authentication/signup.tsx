@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import TopNotification from '../../components/TopNotification';
 import { Colors } from "../../constants/Colors";
+import { PrivateValueStore } from '@react-navigation/native';
 
 
 const { width, height } = Dimensions.get('window');
@@ -396,7 +397,10 @@ const SignupScreen: FC = () => {
 
     if (resp.status === 201) {
       showNotification('Account created successfully');
-      router.push('/(tabs)/explore');
+      router.push({
+        pathname: '/authentication/verifyEmail',
+        params: { email }
+});
       return;
     }
 
