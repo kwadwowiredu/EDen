@@ -135,33 +135,61 @@ const ForgetPassword: FC = () => {
     };
 
     const handleEmail = async () => {
-        if (!isValidEmail(email)) return;
+        if (!isValidEmail(email)) {
+            Alert.alert('Invalid email', 'Please enter a valid email address.');
+            return;
+        }
 
         setresetpassword(true);
 
         try {
-            
-                            const response = await fetch('https://your-api-endpoint.com/reset-password', {
+            const url = 'https://eden-backend-cref.onrender.com/user/request-password-reset-email/';
+            const response = await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                },
                 body: JSON.stringify({ email }),
             });
 
+            // read raw text and try to parse JSON safely
+            const text = await response.text();
+            let data: any = null;
+            try { data = text ? JSON.parse(text) : {}; } catch (e) { data = text; }
+
+            // success (backend returns 200 on success per spec)
             if (response.ok) {
-                router.push('/authentication/reset_password')
-            } else {
-                Alert.alert('Error', 'Failed to send email.');
+                Alert.alert(
+                  'Email sent',
+                  'If that email is registered, you will receive a password reset link shortly. Check your inbox (and spam).',
+                  [{ text: 'OK', onPress: () => router.push('/authentication/reset_password') }]
+                );
+                return;
             }
-        } catch (error) {
-            console.error(error);
-            Alert.alert('Error', 'Something went wrong.');
+
+            // non-OK -> extract message
+            if (data) {
+                if (typeof data === 'string') {
+                    Alert.alert('Error', data);
+                } else if (data.detail || data.message) {
+                    Alert.alert('Error', data.detail || data.message);
+                } else {
+                    // field errors like { email: ["..."] }
+                    const firstKey = Object.keys(data)[0];
+                    const val = data[firstKey];
+                    const msg = Array.isArray(val) ? val.join(' ') : String(val);
+                    Alert.alert('Error', msg || 'Failed to send reset email.');
+                }
+            } else {
+                Alert.alert('Error', 'Failed to send reset email. Try again.');
+            }
+        } catch (error: any) {
+            console.error('[reset-email] error', error);
+            Alert.alert('Error', 'Network error. Check your connection or server URL.');
         } finally {
             setresetpassword(false);
         }
-                
-                 // Simulate server call
-
-
     };
 
     return (
@@ -206,6 +234,7 @@ const ForgetPassword: FC = () => {
                             placeholderTextColor='#595C5E'
                             keyboardType='email-address'
                             style={styles.input}
+                            autoCapitalize="none"
                         />
                         </View>
 

@@ -1,5 +1,4 @@
 // LockScan.tsx - camera-first auto-decode, no native barcode module
-import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -17,6 +16,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import TopNotification from '../components/TopNotification';
+import { Colors } from '../constants/Colors';
 
 const { width, height } = Dimensions.get("window");
 const scanWindowSize = Math.min(width, height) * 0.62;
@@ -172,7 +172,8 @@ export default function LockScan() {
                   onHide={() => setNotifVisible(false)}
                   duration={3000}
                 />
-            {/* Back button */}
+      <SafeAreaView style={styles.topBar}>
+                    {/* Back button */}
             <TouchableOpacity
               style={styles.logoContainer}
               onPress={() => router.back()}
@@ -182,18 +183,15 @@ export default function LockScan() {
             >
               <Image
                 source={require('../assets/images/EDen/Arrow.png')}
-                style={{ width: 22, height: 22, left: width * 0.03 }}
+                style={{ width: 22, height: 22, left: width * 0.45 }}
               />
             </TouchableOpacity>
       
             {/* Screen title */}
-            <Text style={styles.forgettext}>Settings</Text>
-      
-      <SafeAreaView style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <Feather name="x" size={26} color="#000" />
-        </TouchableOpacity>
+            <Text style={styles.forgettext}>Connect to Panel</Text>
       </SafeAreaView>
+
+      <Text style={styles.subTitle}> Scan QR Code to connect to {"\n"}your panel</Text>
 
       <View style={styles.centerScreen}>
         <View style={styles.scanWindow}>
@@ -235,11 +233,11 @@ export default function LockScan() {
           )}
         </View>
 
-        <TouchableOpacity style={[styles.actionBtn, { marginTop: 16 }]} onPress={pickFromGalleryAndDecode}>
+        <TouchableOpacity style={[styles.actionBtn, { marginTop: 16, top: width * 0.08 }]} onPress={pickFromGalleryAndDecode}>
           <Text style={styles.actionText}>Pick from Gallery</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[styles.actionBtn, { marginTop: 12, backgroundColor: "#ddd" }]}
           onPress={() => {
             Alert.alert(
@@ -249,7 +247,10 @@ export default function LockScan() {
           }}
         >
           <Text style={{ color: "#000" }}>How it works</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
+                    <View style={styles.FooterText}>
+                  <Text style={styles.FooterTextContent}>protecting your paradise...</Text>
+                </View>
       </View>
     </View>
   );
@@ -258,32 +259,94 @@ export default function LockScan() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
   topBar: { width: "100%", paddingHorizontal: 12, paddingTop: 10, alignItems: "flex-start" },
-  iconButton: { backgroundColor: "transparent", padding: 8, borderRadius: 8 },
-  centerScreen: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 18 },
+  iconButton: { 
+    backgroundColor: "transparent", 
+    padding: 8, 
+    borderRadius: 8 
+  },
+  subTitle: {
+    fontSize: 18,
+    fontFamily: 'Montserrat-Regular',
+    color: '#000000ff',
+    marginTop: 8,
+    textAlign: 'center',
+    top: width * 0.15
+  },
+  centerScreen: { 
+    flex: 1, 
+    alignItems: "center", 
+    justifyContent: "center", 
+    paddingHorizontal: 18,
+    bottom: width * 0.25, 
+  },
   scanWindow: {
-    width: scanWindowSize,
-    height: scanWindowSize,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#ccc",
+    width: scanWindowSize * 1.1,
+    height: scanWindowSize * 1.1,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
     padding: 12,
-    backgroundColor: "#fafafa",
+    backgroundColor: "#D9D9D9",
   },
-  corner: { position: "absolute", width: 24, height: 24, borderColor: "#00FFB3" },
-  cornerTopLeft: { top: 6, left: 6, borderLeftWidth: 4, borderTopWidth: 4 },
-  cornerTopRight: { top: 6, right: 6, borderTopWidth: 4, borderRightWidth: 4 },
-  cornerBottomLeft: { bottom: 6, left: 6, borderLeftWidth: 4, borderBottomWidth: 4 },
-  cornerBottomRight: { bottom: 6, right: 6, borderBottomWidth: 4, borderRightWidth: 4 },
-
-  resultBox: { padding: 8, alignItems: "center", justifyContent: "center" },
-  resultText: { color: "#000", textAlign: "center" },
-  rescanBtn: { backgroundColor: "#00C48C", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, marginTop: 8 },
-  rescanText: { color: "#fff" },
-
-  actionBtn: { backgroundColor: "#1C9174", paddingVertical: 12, paddingHorizontal: 28, borderRadius: 8 },
-  actionText: { color: "#fff", fontWeight: "600" },
+  corner: { 
+    position: "absolute", 
+    width: width * 0.1, 
+    height: width * 0.1, 
+    borderColor: "#80807F" 
+  },
+  cornerTopLeft: { 
+    top: width * 0.05, 
+    left: width * 0.05, 
+    borderLeftWidth: 4, 
+    borderTopWidth: 4 
+  },
+  cornerTopRight: { 
+    top: width * 0.05, 
+    right: width * 0.05, 
+    borderTopWidth: 4, 
+    borderRightWidth: 4 
+  },
+  cornerBottomLeft: { 
+    bottom: width * 0.05, 
+    left: width * 0.05, 
+    borderLeftWidth: 4, 
+    borderBottomWidth: 4 
+  },
+  cornerBottomRight: { 
+    bottom: width * 0.05, 
+    right: width * 0.05, 
+    borderBottomWidth: 4, 
+    borderRightWidth: 4 
+  },
+  resultBox: { 
+    padding: 8, 
+    alignItems: "center", 
+    justifyContent: "center" 
+  },
+  resultText: { 
+    color: "#000", 
+    textAlign: "center" 
+  },
+  rescanBtn: { 
+    backgroundColor: "#00C48C", 
+    paddingHorizontal: 12, 
+    paddingVertical: 6, 
+    borderRadius: 6, 
+    marginTop: 8 
+  },
+  rescanText: { 
+    color: "#fff" 
+  },
+  actionBtn: { 
+    backgroundColor: "#1C9174", 
+    paddingVertical: 12, 
+    paddingHorizontal: 28, 
+    borderRadius: 8 
+  },
+  actionText: { 
+    color: "#fff", 
+    fontWeight: "600" 
+  },
   logoContainer: {
     alignItems: 'center',
     right: width * 0.4,
@@ -292,11 +355,24 @@ const styles = StyleSheet.create({
     top: width * 0.06,
   },
   forgettext:{
-    fontSize: 22,
+    fontSize: 26,
     fontFamily: 'Montserrat-Bold',
-    bottom: width * 0.05,
+    bottom: width * 0.054,
     left: width * 0.16,
     marginBottom: 0,
-    marginLeft: width * 0.23,
-    },
+    marginLeft: width * 0.05,
+  },
+  FooterText: {
+    position: 'absolute',
+    bottom: width * -0.062,
+    width: '100%',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: height * 0.02,
+  },
+  FooterTextContent: {
+    color: Colors.light.lightGreen,
+    fontSize: width * 0.04,
+    fontFamily: 'Montserrat-Italic',
+  },
 });
